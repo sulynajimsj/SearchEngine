@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+
+        .avatar-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .dropdown {
+            display: none;
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 200px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+
+        .dropdown[data-visible="true"] {
+            display: block;
+        }
+
+        .dropdown p {
+            margin: 10px;
+            padding: 0;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .dropdown a {
+            display: block;
+            margin: 10px;
+            text-decoration: none;
+            color: #4CAF50;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        h1, h2 {
+            color: #4CAF50;
+        }
+
+        .results-container {
+            width: 80%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .word-counts {
+            width: 30%;
+            margin-right: 20px;
+        }
+
+        .search-results {
+            width: 65%;
+        }
+
+        .results {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .results th {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-size: 16px;
+        }
+
+        .results td {
+            padding: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .results tr {
+            border-bottom: 1px solid #ddd;
+        }
+
+        .results tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .results tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .url-link {
+            color: #1a0dab;
+            text-decoration: none;
+        }
+
+        .url-link:hover {
+            text-decoration: underline;
+        }
+
+        .rank-badge {
+            background-color: #4CAF50;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .back-link {
+            color: #4CAF50;
+            font-weight: bold;
+            font-size: 16px;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            color: #666;
+            font-size: 16px;
+            margin: 20px 0;
+            width: 100%;
+        }
+
+        .search-form {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px 0;
+        }
+
+        .search-box {
+            width: 80%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 2px solid #4CAF50;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .search-button {
+            width: 18%;
+            background-color: #4CAF50;
+            color: white;
+            padding: 14px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* Pagination styles */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            width: 100%;
+        }
+
+        .page-link {
+            padding: 8px 12px;
+            border: 1px solid #4CAF50;
+            color: #4CAF50;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .page-link:hover {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .page-link.active {
+            background-color: #4CAF50;
+            color: white;
+            cursor: default;
+        }
+
+        .results-info {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="avatar-container" onclick="toggleDropdown()">
+    <div class="avatar">
+        % if user_picture:
+        <img src="{{user_picture}}" alt="Profile Picture">
+        % else:
+        <img src="/static/default-avatar.png" alt="Default Avatar">
+        % end
+    </div>
+    <div class="dropdown" id="dropdownMenu" data-visible="false">
+        % if user_name:
+        <p>{{user_name}}</p>
+        <p>{{user_email}}</p>
+        <a href="/logout">Logout</a>
+        % else:
+        <p><a href="/login">Login</a></p>
+        % end
+    </div>
+</div>
+
+<h1>Search Results</h1>
+
+<form action="/home" method="get" class="search-form">
+    <input type="text" name="keywords" class="search-box" value="{{query}}" placeholder="Enter your search...">
+    <button type="submit" class="search-button">Search</button>
+</form>
+
+<h2>Results for "{{query}}"</h2>
+
+<div class="results-container">
+    <div class="word-counts">
+        <h3>Word Frequency</h3>
+        <table class="results">
+            <thead>
+            <tr>
+                <th>Word</th>
+                <th>Count</th>
+            </tr>
+            </thead>
+            <tbody>
+            % for keyword, count in result_counts.items():
+            <tr>
+                <td>{{keyword}}</td>
+                <td>{{count}}</td>
+            </tr>
+            % end
+            </tbody>
+        </table>
+    </div>
+
+    <div class="search-results">
+        <h3>Matching Pages</h3>
+        % if not search_results:
+        <div class="no-results">
+            No results found for your search. Please try different keywords.
+        </div>
+        % else:
+        <div class="results-info">
+            Showing results {{(current_page-1)*5 + 1}} to {{min(current_page*5, total_results)}} of {{total_results}}
+        </div>
+        <table class="results">
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>URL</th>
+                <th>Rank</th>
+            </tr>
+            </thead>
+            <tbody>
+            % for result in search_results:
+            <tr>
+                <td>{{result['title']}}</td>
+                <td><a href="{{result['url']}}" class="url-link" target="_blank">{{result['url']}}</a></td>
+                <td><span class="rank-badge">{{result['rank']}}</span></td>
+            </tr>
+            % end
+            </tbody>
+        </table>
+        % if total_pages > 1:
+        <div class="pagination">
+            % if current_page > 1:
+            <a href="/home?keywords={{query}}&page={{current_page-1}}" class="page-link">&laquo; Previous</a>
+            % end
+            % for p in range(1, total_pages + 1):
+            % if p == current_page:
+            <span class="page-link active">{{p}}</span>
+            % else:
+            <a href="/home?keywords={{query}}&page={{p}}" class="page-link">{{p}}</a>
+            % end
+            % end
+            % if current_page < total_pages:
+            <a href="/home?keywords={{query}}&page={{current_page+1}}" class="page-link">Next &raquo;</a>
+            % end
+        </div>
+        % end
+        % end
+    </div>
+</div>
+
+<a href="/home" class="back-link">Go back to search</a>
+
+<script>
+    function toggleDropdown() {
+        const dropdown = document.getElementById("dropdownMenu");
+        const isVisible = dropdown.getAttribute("data-visible") === "true";
+        dropdown.setAttribute("data-visible", !isVisible);
+    }
+
+    document.addEventListener("click", function(event) {
+        const dropdown = document.getElementById("dropdownMenu");
+        const avatarContainer = document.querySelector(".avatar-container");
+        if (!avatarContainer.contains(event.target)) {
+            dropdown.setAttribute("data-visible", "false");
+        }
+    });
+</script>
+
+</body>
+</html>

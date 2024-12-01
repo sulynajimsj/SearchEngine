@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Poogle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+
+        /* Logo styling */
+        .logo {
+            width: 400px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: black;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .login-button {
+            padding: 10px 20px;
+            font-size: 18px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .login-button:hover {
+            background-color: #45a049;
+        }
+
+        .guest-link {
+            color: #4CAF50;
+            font-size: 16px;
+            text-decoration: none;
+        }
+
+        .guest-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Logo and Welcome Text -->
+<img src="static/poogle.svg" alt="Poogle Logo" class="logo">
+<h2>Welcome to Poogle</h2>
+
+<!-- Login Button -->
+<a href="/login" class="login-button">Login with Google</a>
+
+<!-- Guest Access Link -->
+<a href="/home" class="guest-link">Continue as Guest</a>
+
+</body>
+</html>
