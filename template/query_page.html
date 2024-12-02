@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Poogle</title>
+    <style>
+        /* Previous styles remain the same until autocomplete-results */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+
+        .logo {
+            width: 400px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: black;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .login-button {
+            padding: 10px 20px;
+            font-size: 18px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .login-button:hover {
+            background-color: #45a049;
+        }
+
+        .guest-link {
+            color: #4CAF50;
+            font-size: 16px;
+            text-decoration: none;
+        }
+
+        .guest-link:hover {
+            text-decoration: underline;
+        }
+
+        .search-container {
+            position: relative;
+            width: 500px;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            width: calc(100% - 120px);
+            padding: 10px;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            border-radius: 5px 0 0 5px;
+            margin: 0;
+            height: 42px;
+            box-sizing: border-box;
+        }
+
+        .search-button {
+            width: 120px;
+            padding: 10px 20px;
+            font-size: 18px;
+            border: 1px solid #4CAF50;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+            margin: 0;
+            height: 42px;
+            vertical-align: top;
+        }
+
+        #search-form {
+            display: flex;
+            align-items: stretch;
+        }
+
+        /* Updated autocomplete styles */
+        .autocomplete-results {
+            position: absolute;
+            top: 42px;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 0 0 5px 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: none;
+            z-index: 1000;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .section-title {
+            padding: 8px 15px;
+            background-color: #f8f9fa;
+            color: #666;
+            font-size: 13px;
+            font-weight: 500;
+            border-bottom: 1px solid #eee;
+        }
+
+        .autocomplete-section {
+            margin-bottom: 8px;
+        }
+
+        .autocomplete-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .autocomplete-item:hover {
+            background-color: #f5f5f5;
+        }
+
+        .word-suggestion {
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .word-suggestion i {
+            color: #9AA0A6;
+        }
+
+        .page-suggestion {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .suggestion-title {
+            color: #1a0dab;
+            font-weight: bold;
+            font-size: 14px;
+            line-height: 1.3;
+        }
+
+        .suggestion-url {
+            color: #006621;
+            font-size: 12px;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: #eee;
+            margin: 0;
+        }
+
+        /* Icons */
+        .search-icon {
+            color: #9AA0A6;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<img src="../static/poogle.svg" alt="Poogle Logo" class="logo">
+<h2>Welcome to Poogle</h2>
+
+<div class="search-container">
+    <form action="/home" method="GET" id="search-form">
+        <input type="text"
+               class="search-box"
+               id="keywords"
+               name="keywords"
+               placeholder="Search..."
+               autocomplete="off">
+        <button type="submit" class="search-button">Search</button>
+    </form>
+    <div class="autocomplete-results" id="autocomplete-results"></div>
+</div>
+
+<a href="/login" class="login-button">Login with Google</a>
+<a href="/home" class="guest-link">Continue as Guest</a>
+
+<script>
+    let timeoutId;
+    const searchInput = document.getElementById('keywords');
+    const autocompleteResults = document.getElementById('autocomplete-results');
+    const searchForm = document.getElementById('search-form');
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(timeoutId);
+        const query = this.value.trim();
+
+        if (query.length === 0) {
+            autocompleteResults.style.display = 'none';
+            return;
+        }
+
+        timeoutId = setTimeout(() => {
+            fetch(`/home?q=${encodeURIComponent(query)}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    let html = '';
+
+                    // Word suggestions section
+                    if (data.words && data.words.length > 0) {
+                        html += '<div class="autocomplete-section">';
+                        html += '<div class="section-title">Search Suggestions</div>';
+                        data.words.forEach(word => {
+                            html += `
+                        <div class="autocomplete-item" onclick="selectAutocomplete('${word}')">
+                            <div class="word-suggestion">
+                                <span class="search-icon">🔍</span>
+                                ${word}
+                            </div>
+                        </div>
+                        `;
+                        });
+                        html += '</div>';
+                    }
+
+                    // Add divider if both sections have content
+                    if (data.words?.length && data.pages?.length) {
+                        html += '<div class="divider"></div>';
+                    }
+
+                    // Page suggestions section
+                    if (data.pages && data.pages.length > 0) {
+                        html += '<div class="autocomplete-section">';
+                        html += '<div class="section-title">Pages</div>';
+                        data.pages.forEach(page => {
+                            html += `
+                        <div class="autocomplete-item" onclick="window.location.href='${page.url}'">
+                            <div class="page-suggestion">
+                                <div class="suggestion-title">${page.title}</div>
+                                <div class="suggestion-url">${page.url}</div>
+                            </div>
+                        </div>
+                        `;
+                        });
+                        html += '</div>';
+                    }
+
+                    if (html) {
+                        autocompleteResults.innerHTML = html;
+                        autocompleteResults.style.display = 'block';
+                    } else {
+                        autocompleteResults.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching suggestions:', error);
+                    autocompleteResults.style.display = 'none';
+                });
+        }, 300);
+    });
+
+    function selectAutocomplete(word) {
+        searchInput.value = word;
+        autocompleteResults.style.display = 'none';
+        searchForm.submit();
+    }
+
+    document.addEventListener('click', function(event) {
+        if (!searchInput.contains(event.target) && !autocompleteResults.contains(event.target)) {
+            autocompleteResults.style.display = 'none';
+        }
+    });
+</script>
+
+</body>
+</html>

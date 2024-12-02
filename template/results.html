@@ -236,7 +236,7 @@
         % if user_picture:
         <img src="{{user_picture}}" alt="Profile Picture">
         % else:
-        <img src="/static/default-avatar.png" alt="Default Avatar">
+        <img src="/default-avatar.png" alt="Default Avatar">
         % end
     </div>
     <div class="dropdown" id="dropdownMenu" data-visible="false">
@@ -301,9 +301,9 @@
             <tbody>
             % for result in search_results:
             <tr>
-                <td>{{result['title']}}</td>
-                <td><a href="{{result['url']}}" class="url-link" target="_blank">{{result['url']}}</a></td>
-                <td><span class="rank-badge">{{result['rank']}}</span></td>
+                <td>{{result.title}}</td>
+                <td><a href="{{result.url}}" class="url-link" target="_blank">{{result.url}}</a></td>
+                <td><span class="rank-badge">{{result.rank}}</span></td>
             </tr>
             % end
             </tbody>
